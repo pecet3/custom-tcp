@@ -27,7 +27,10 @@ func (s *Server) Run() error {
 	defer ln.Close()
 	s.ln = ln
 
+	go s.acceptLoop()
+
 	<-s.quitch
+
 	return nil
 }
 
@@ -38,6 +41,7 @@ func (s *Server) acceptLoop() {
 			log.Println("acceptLoop err: ", err)
 			continue
 		}
+		log.Println(conn)
 		go s.readLoop(conn)
 	}
 }
@@ -59,5 +63,6 @@ func (s *Server) readLoop(conn net.Conn) {
 }
 
 func main() {
-
+	server := NewServer(":3000")
+	server.Run()
 }
