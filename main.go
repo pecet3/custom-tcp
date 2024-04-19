@@ -38,14 +38,24 @@ func (s *Server) acceptLoop() {
 			log.Println("acceptLoop err: ", err)
 			continue
 		}
-
+		go s.readLoop(conn)
 	}
 }
 
-func (s *Server)readLoop(c net.Conn){
+func (s *Server) readLoop(conn net.Conn) {
+	buff := make([]byte, 2048)
 	for {
-		n, err:= 
+		n, err := conn.Read(buff)
+		if err != nil {
+			log.Println("read err:", err)
+			continue
+		}
+		log.Println("n = ", n)
+
+		msg := buff[:n]
+		log.Println(string(msg))
 	}
+
 }
 
 func main() {
