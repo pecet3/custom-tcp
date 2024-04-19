@@ -44,6 +44,27 @@ func (s *Server) Run() error {
 	return nil
 }
 
+type Client struct {
+	name string
+	conn net.Conn
+}
+
+func (s *Server) handleHandShake(conn net.Conn) {
+	conn.Write([]byte("name"))
+	buff := make([]byte, 255)
+	for {
+		n, err := conn.Read(buff)
+		if err != nil {
+			log.Println("read err handshake:", err)
+			break
+		}
+		fmt.Println("HandShake name: ", buff[:n])
+
+		conn.Write([]byte("thank you for msg\n"))
+	}
+
+}
+
 func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.ln.Accept()
@@ -52,6 +73,9 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 		log.Println("client connected:", conn.RemoteAddr().String())
+
+		s.handleHandShake(conn)
+
 		s.peerMap[conn.RemoteAddr()] = conn
 		log.Println("clients on the server:")
 		for client := range s.peerMap {
