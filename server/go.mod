@@ -1,3 +1,3 @@
-module github.com/pecet3/custom-tcp
+module github.com/pecet3/custom-tcp/server
 
 go 1.22.1
