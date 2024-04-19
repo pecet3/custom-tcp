@@ -11,6 +11,7 @@ type Server struct {
 	ln        net.Listener
 	quitch    chan struct{}
 	msgch     chan Message
+	peerMap   map[net.Addr]net.Conn
 }
 
 type Message struct {
@@ -19,12 +20,12 @@ type Message struct {
 }
 
 func NewServer(listenAdr string) *Server {
-	s := &Server{
+	return &Server{
 		listenAdr: listenAdr,
 		quitch:    make(chan struct{}),
 		msgch:     make(chan Message, 10),
+		peerMap:   make(map[net.Addr]net.Conn),
 	}
-	return s
 }
 
 func (s *Server) Run() error {
@@ -38,7 +39,8 @@ func (s *Server) Run() error {
 	go s.acceptLoop()
 
 	<-s.quitch
-	defer close(s.msgch)
+	close(s.msgch)
+
 	return nil
 }
 
@@ -49,7 +51,12 @@ func (s *Server) acceptLoop() {
 			log.Println("acceptLoop err: ", err)
 			continue
 		}
-		log.Println(conn)
+		log.Println("client connected:", conn.RemoteAddr().String())
+		s.peerMap[conn.RemoteAddr()] = conn
+		log.Println("clients on the server:")
+		for client := range s.peerMap {
+			fmt.Println("      > ", client.String())
+		}
 		go s.readLoop(conn)
 
 	}
@@ -63,20 +70,23 @@ func (s *Server) readLoop(conn net.Conn) {
 			log.Println("read err:", err)
 			continue
 		}
-		payload := buff[0:n]
-		log.Println(n)
 		s.msgch <- Message{
 			client:  conn,
-			payload: payload,
+			payload: buff[:n],
 		}
+
+		conn.Write([]byte("thank you for msg\n"))
 	}
 
 }
 
 func (s *Server) handleMsg() {
 	for msg := range s.msgch {
-		fmt.Print(msg.client.LocalAddr())
-		fmt.Println(string(msg.payload))
+		log.Println(" // " + msg.client.RemoteAddr().String() + " => " + string(msg.payload))
+
+		for _, conn := range s.peerMap {
+			conn.Write([]byte(string(msg.payload)))
+		}
 	}
 }
 
