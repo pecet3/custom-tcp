@@ -47,7 +47,13 @@ func handleHandShake(conn net.Conn) {
 			fmt.Println("Handshake response error:", err)
 			return
 		}
-
+		response := string(buff[:n])
+		if response == "name" {
+			fmt.Print("Your name: ")
+			reader := bufio.NewReader(os.Stdin)
+			msg, _ := reader.ReadString('\n')
+			conn.Write([]byte(msg))
+		}
 		fmt.Println("[SERVER]:", string(buff[:n]))
 	}
 }
