@@ -16,7 +16,7 @@ func main() {
 		return
 	}
 	defer conn.Close()
-	handleHandShake(conn)
+	// handleHandShake(conn)
 	for {
 		fmt.Print("Message: ")
 		reader := bufio.NewReader(os.Stdin)
@@ -35,7 +35,7 @@ func main() {
 			return
 		}
 
-		fmt.Println("[SERVER]:", string(response[:n]))
+		fmt.Println(string(response[:n]))
 	}
 }
 
@@ -53,7 +53,7 @@ func handleHandShake(conn net.Conn) {
 			reader := bufio.NewReader(os.Stdin)
 			msg, _ := reader.ReadString('\n')
 			conn.Write([]byte(msg))
+			break
 		}
-		fmt.Println("[SERVER]:", string(buff[:n]))
 	}
 }
