@@ -28,7 +28,6 @@ func main() {
 			fmt.Println("You must enter at least name with 3 characters")
 			continue
 		}
-		fmt.Println("Connecting...")
 		handleHandShake(conn, name)
 		break
 	}
@@ -64,7 +63,7 @@ func handleHandShake(conn net.Conn, name string) {
 		return
 	}
 	response := string(buff[:n])
-	if response == conn.LocalAddr().String()+"ENTER_NAME" {
+	if response == "ENTER_NAME"+conn.LocalAddr().String() {
 		conn.Write([]byte(name))
 	}
 }

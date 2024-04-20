@@ -50,13 +50,13 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 		log.Println("client connected:", conn.RemoteAddr().String())
-		go s.handleClient(conn)
+		go s.handleNewConn(conn)
 
 	}
 }
 
-func (s *Server) handleClient(conn net.Conn) {
-	conn.Write([]byte("ENTER_NAME"))
+func (s *Server) handleNewConn(conn net.Conn) {
+	conn.Write([]byte("ENTER_NAME" + conn.RemoteAddr().String()))
 	buff := make([]byte, 255)
 	n, err := conn.Read(buff)
 	if err != nil {
@@ -64,40 +64,35 @@ func (s *Server) handleClient(conn net.Conn) {
 		conn.Close()
 	}
 	name := string(buff[:n])
-	log.Println(name)
-	s.addClient(conn, name)
-	s.readLoop(conn)
+	c := s.newClient(conn, name)
+	c.readLoop(s)
 }
 
-func (s *Server) readLoop(conn net.Conn) {
-	buff := make([]byte, 2048)
-	for {
-		n, err := conn.Read(buff)
-		if err != nil {
-			log.Println("read err:", err)
-			conn.Close()
-			continue
-		}
-		s.msgch <- Message{
-			client:  conn,
-			payload: buff[:n],
-		}
-
-	}
-}
-func (s *Server) addClient(conn net.Conn, name string) {
+func (s *Server) newClient(conn net.Conn, name string) *Client {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-
-	s.peerMap[conn.RemoteAddr()] = &Client{
+	c := &Client{
 		name: name,
 		conn: conn,
 	}
+	s.peerMap[conn.RemoteAddr()] = c
+	return c
 }
 
-func (s *Server) broadcastAll(msg string) {
-	for _, client := range s.peerMap {
-		client.conn.Write([]byte(msg))
+func (c *Client) readLoop(s *Server) {
+	buff := make([]byte, 2048)
+	for {
+		n, err := c.conn.Read(buff)
+		if err != nil {
+			log.Println("read err:", err)
+			c.conn.Close()
+			continue
+		}
+		s.msgch <- Message{
+			client:  c,
+			payload: buff[:n],
+		}
+
 	}
 }
 
@@ -107,14 +102,19 @@ type Client struct {
 }
 
 type Message struct {
-	client  net.Conn
+	client  *Client
 	payload []byte
 }
 
 func (s *Server) handleMsg() {
 	for msg := range s.msgch {
-		log.Println(msg.client, "wrote: ", msg.payload)
-		s.broadcastAll(string(msg.payload))
+		log.Println(msg.client.name, "wrote: ", string(msg.payload))
+		s.broadcastAll(string(msg.client.name) + ": " + string(msg.payload))
+	}
+}
+func (s *Server) broadcastAll(msg string) {
+	for _, client := range s.peerMap {
+		client.conn.Write([]byte(msg))
 	}
 }
 
