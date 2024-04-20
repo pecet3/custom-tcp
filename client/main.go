@@ -16,8 +16,25 @@ func main() {
 		return
 	}
 	defer conn.Close()
-	// handleHandShake(conn)
+
+	var name string
 	for {
+		fmt.Print("Enter your name: ")
+		_, err = fmt.Scan(&name)
+		if err != nil {
+			fmt.Println(err)
+		}
+		if len(name) < 2 {
+			fmt.Println("You must enter at least name with 3 characters")
+			continue
+		}
+		fmt.Println("Connecting...")
+		handleHandShake(conn, name)
+		break
+	}
+
+	for {
+
 		fmt.Print("Message: ")
 		reader := bufio.NewReader(os.Stdin)
 		msg, _ := reader.ReadString('\n')
@@ -39,21 +56,15 @@ func main() {
 	}
 }
 
-func handleHandShake(conn net.Conn) {
-	for {
-		buff := make([]byte, 255)
-		n, err := conn.Read(buff)
-		if err != nil {
-			fmt.Println("Handshake response error:", err)
-			return
-		}
-		response := string(buff[:n])
-		if response == "name" {
-			fmt.Print("Your name: ")
-			reader := bufio.NewReader(os.Stdin)
-			msg, _ := reader.ReadString('\n')
-			conn.Write([]byte(msg))
-			break
-		}
+func handleHandShake(conn net.Conn, name string) {
+	buff := make([]byte, 255)
+	n, err := conn.Read(buff)
+	if err != nil {
+		fmt.Println("Handshake response error:", err)
+		return
+	}
+	response := string(buff[:n])
+	if response == conn.LocalAddr().String()+"ENTER_NAME" {
+		conn.Write([]byte(name))
 	}
 }

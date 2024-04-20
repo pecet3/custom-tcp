@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"sync"
@@ -57,6 +56,7 @@ func (s *Server) acceptLoop() {
 }
 
 func (s *Server) handleClient(conn net.Conn) {
+	conn.Write([]byte("ENTER_NAME"))
 	buff := make([]byte, 255)
 	n, err := conn.Read(buff)
 	if err != nil {
@@ -75,6 +75,7 @@ func (s *Server) readLoop(conn net.Conn) {
 		n, err := conn.Read(buff)
 		if err != nil {
 			log.Println("read err:", err)
+			conn.Close()
 			continue
 		}
 		s.msgch <- Message{
@@ -110,16 +111,9 @@ type Message struct {
 	payload []byte
 }
 
-// func (s *Server) handleNewClients() {
-// 	for c := range s.cchan {
-// 		s.addClient(c.conn, c.name)
-// 		s.broadcastAll("new user: " + c.name)
-// 	}
-// }
-
 func (s *Server) handleMsg() {
 	for msg := range s.msgch {
-		fmt.Println(s.peerMap)
+		log.Println(msg.client, "wrote: ", msg.payload)
 		s.broadcastAll(string(msg.payload))
 	}
 }
