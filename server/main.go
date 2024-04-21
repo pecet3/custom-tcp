@@ -64,11 +64,12 @@ func (s *Server) handleNewConn(conn net.Conn) {
 		conn.Close()
 	}
 	name := string(buff[:n])
-	c := s.newClient(conn, name)
+	c := s.addNewClient(conn, name)
+	s.broadcastAll(name + " joins the server")
 	c.readLoop(s)
 }
 
-func (s *Server) newClient(conn net.Conn, name string) *Client {
+func (s *Server) addNewClient(conn net.Conn, name string) *Client {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	c := &Client{
