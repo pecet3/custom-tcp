@@ -31,9 +31,8 @@ func main() {
 		handleHandShake(conn, name)
 		break
 	}
-
+	go readLoop(conn)
 	for {
-
 		fmt.Print("Message: ")
 		reader := bufio.NewReader(os.Stdin)
 		msg, _ := reader.ReadString('\n')
@@ -43,15 +42,6 @@ func main() {
 			fmt.Println("Error message write:", err)
 			return
 		}
-
-		response := make([]byte, 2048)
-		n, err := conn.Read(response)
-		if err != nil {
-			fmt.Println("Error message response:", err)
-			return
-		}
-
-		fmt.Println(string(response[:n]))
 	}
 }
 
@@ -66,4 +56,15 @@ func handleHandShake(conn net.Conn, name string) {
 	if response == "ENTER_NAME"+conn.LocalAddr().String() {
 		conn.Write([]byte(name))
 	}
+}
+
+func readLoop(conn net.Conn) {
+	response := make([]byte, 2048)
+	n, err := conn.Read(response)
+	if err != nil {
+		fmt.Println("Error message response:", err)
+		return
+	}
+
+	fmt.Println(string(response[:n]))
 }
