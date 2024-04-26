@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net"
 	"os"
 )
@@ -59,12 +60,16 @@ func handleHandShake(conn net.Conn, name string) {
 }
 
 func readLoop(conn net.Conn) {
-	response := make([]byte, 2048)
-	n, err := conn.Read(response)
-	if err != nil {
-		fmt.Println("Error message response:", err)
-		return
+	for {
+		response := make([]byte, 2048)
+		log.Println("response")
+		n, err := conn.Read(response)
+		if err != nil {
+			fmt.Println("Error message response:", err)
+			return
+		}
+
+		fmt.Println(string(response[:n]))
 	}
 
-	fmt.Println(string(response[:n]))
 }
