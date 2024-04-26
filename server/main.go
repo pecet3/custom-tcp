@@ -62,6 +62,7 @@ func (s *Server) handleNewConn(conn net.Conn) {
 	if err != nil {
 		log.Println("read nickname err:", err)
 		conn.Close()
+		return
 	}
 	name := string(buff[:n])
 	c := s.addNewClient(conn, name)
@@ -87,7 +88,7 @@ func (c *Client) readLoop(s *Server) {
 		if err != nil {
 			log.Println("read err:", err)
 			c.conn.Close()
-			continue
+			break
 		}
 		s.msgch <- Message{
 			client:  c,
