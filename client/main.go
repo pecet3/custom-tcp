@@ -32,6 +32,7 @@ func main() {
 		handleHandShake(conn, name)
 		break
 	}
+
 	go readLoop(conn)
 	for {
 		fmt.Print("Message: ")

@@ -110,7 +110,7 @@ type Message struct {
 
 func (s *Server) handleMsg() {
 	for msg := range s.msgch {
-		log.Println(msg.client.name, "wrote: ", string(msg.payload))
+		log.Println(msg.client.name, "wrote")
 		s.broadcastAll(string(msg.client.name) + ": " + string(msg.payload))
 	}
 }
