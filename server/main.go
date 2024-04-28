@@ -67,6 +67,7 @@ func (s *Server) handleNewConn(conn net.Conn) {
 	name := string(buff[:n])
 	c := s.addNewClient(conn, name)
 	s.broadcastAll(name + " joins the server")
+	conn.Write([]byte(s.getUserNames()))
 	c.readLoop(s)
 }
 
@@ -118,6 +119,16 @@ func (s *Server) broadcastAll(msg string) {
 	for _, client := range s.peerMap {
 		client.conn.Write([]byte(msg))
 	}
+}
+
+func (s *Server) getUserNames() string {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	var names string
+	for _, c := range s.peerMap {
+		names = names + c.name + "\n"
+	}
+	return names
 }
 
 func main() {
