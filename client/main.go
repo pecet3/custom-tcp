@@ -30,7 +30,7 @@ func main() {
 		break
 	}
 
-	go readLoop(conn)
+	go readLoop(conn, name)
 	for {
 		var msg string
 		_, err = fmt.Scan(&msg)
@@ -56,16 +56,19 @@ func handleHandShake(conn net.Conn, name string) {
 	}
 }
 
-func readLoop(conn net.Conn) {
+func readLoop(conn net.Conn, name string) {
 	response := make([]byte, 2048)
 
 	for {
 		n, err := conn.Read(response)
 		if err != nil {
 			fmt.Println("Error message response:", err)
-			return
+			continue
 		}
 
+		if string(response[:len(name)]) == name {
+			continue
+		}
 		fmt.Println(string(response[:n]))
 	}
 
