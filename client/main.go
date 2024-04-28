@@ -1,11 +1,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"log"
 	"net"
-	"os"
 )
 
 func main() {
@@ -35,9 +32,8 @@ func main() {
 
 	go readLoop(conn)
 	for {
-		fmt.Print("Message: ")
-		reader := bufio.NewReader(os.Stdin)
-		msg, _ := reader.ReadString('\n')
+		var msg string
+		_, err = fmt.Scan(&msg)
 
 		_, err := conn.Write([]byte(msg))
 		if err != nil {
@@ -61,9 +57,9 @@ func handleHandShake(conn net.Conn, name string) {
 }
 
 func readLoop(conn net.Conn) {
+	response := make([]byte, 2048)
+
 	for {
-		response := make([]byte, 2048)
-		log.Println("response")
 		n, err := conn.Read(response)
 		if err != nil {
 			fmt.Println("Error message response:", err)
