@@ -63,7 +63,7 @@ func readLoop(conn net.Conn, name string) {
 		n, err := conn.Read(response)
 		if err != nil {
 			fmt.Println("Error message response:", err)
-			continue
+			return
 		}
 
 		if string(response[:len(name)]) == name {
